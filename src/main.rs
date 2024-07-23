@@ -162,7 +162,7 @@ fn main() {
 
     // this is really dirty
     filtered_participants.shuffle(&mut rng);
-    while contains_exclusions(&filtered_participants) {
+    while pool != ExchangePool::IslandLife && contains_exclusions(&filtered_participants) {
         filtered_participants.shuffle(&mut rng);
     }
     filtered_participants.iter().enumerate().for_each(|(i, p)| {
