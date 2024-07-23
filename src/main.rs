@@ -5,7 +5,7 @@ use rand::seq::SliceRandom;
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum ExchangePool {
     IslandLife,
-    Grabergazureson,
+    Grabergishimazureson,
     Pets,
 }
 
@@ -16,7 +16,7 @@ fn letter_for_pool(pool: ExchangePool) -> char {
 
     match pool {
         ExchangePool::IslandLife => 'I',
-        ExchangePool::Grabergazureson => letters[0],
+        ExchangePool::Grabergishimazureson => letters[0],
         ExchangePool::Pets => 'P',
     }
 }
@@ -50,72 +50,72 @@ fn main() {
     let participants = vec![
         Participant::new(
             "Claire".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Duncan", "Meaghann"],
         ),
         Participant::new(
             "Grant".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Chris"],
         ),
         Participant::new(
             "Anne".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Eric", "K-Lee"],
         ),
         Participant::new(
             "Duncan".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Claire", "Steve"],
         ),
         Participant::new(
             "Noel".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["K-Lee", "Linda"],
         ),
         Participant::new(
             "K-Lee".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Noel", "Kari"],
         ),
         Participant::new(
             "Steve".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Linda", "Alec"],
         ),
         Participant::new(
             "Linda".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Steve", "Anne"],
         ),
         Participant::new(
             "Chris".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Jim"],
         ),
         Participant::new(
             "Jim".to_string(),
-            vec![ExchangePool::Grabergazureson],
+            vec![ExchangePool::Grabergishimazureson],
             vec!["Kari", "Duncan"],
         ),
         Participant::new(
             "Kari".to_string(),
-            vec![ExchangePool::Grabergazureson],
+            vec![ExchangePool::Grabergishimazureson],
             vec!["Jim", "Grant"],
         ),
         Participant::new(
             "Meaghann".to_string(),
-            vec![ExchangePool::Grabergazureson],
+            vec![ExchangePool::Grabergishimazureson],
             vec!["Noel"],
         ),
         Participant::new(
             "Alec".to_string(),
-            vec![ExchangePool::Grabergazureson],
+            vec![ExchangePool::Grabergishimazureson],
             vec!["Claire"],
         ),
         Participant::new(
             "Eric".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergazureson],
+            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
             vec!["Anne"],
         ),
         Participant::new("Stella".to_string(), vec![ExchangePool::Pets], vec!["Lily"]),
@@ -149,7 +149,7 @@ fn main() {
     let pool_arg = std::env::args().nth(1).expect("No pool specified");
     let pool = match pool_arg.as_str() {
         "island" => ExchangePool::IslandLife,
-        "graber" => ExchangePool::Grabergazureson,
+        "graber" => ExchangePool::Grabergishimazureson,
         "pets" => ExchangePool::Pets,
         _ => panic!("Invalid pool specified"),
     };
