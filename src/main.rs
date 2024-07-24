@@ -1,5 +1,6 @@
+use std::collections::HashMap;
+
 use chrono::{Datelike, Local};
-use rand;
 use rand::seq::SliceRandom;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -28,6 +29,84 @@ struct Participant {
     exclusions: Vec<String>,
 }
 
+#[derive(Debug, Default)]
+struct ParticipantGraph {
+    participants: HashMap<String, Participant>,
+    edges: HashMap<String, Vec<String>>,
+}
+
+impl ParticipantGraph {
+    pub fn new() -> Self {
+        Self {
+            participants: HashMap::new(),
+            edges: HashMap::new(),
+        }
+    }
+
+    pub fn from_participants(participants: Vec<Participant>) -> Self {
+        let mut graph = Self::new();
+        participants.iter().for_each(|p| {
+            graph.add_participant(p.clone());
+        });
+        graph.link_participants();
+        graph
+    }
+
+    pub fn add_participant(&mut self, participant: Participant) {
+        self.participants.insert(participant.name.clone(), participant);
+    }
+
+    pub fn link_participants(&mut self) {
+        for (name, participant) in &self.participants {
+            let mut possible_receivers = self
+                .participants
+                .iter()
+                .filter(|(n, p)| {
+                    *n != name
+                        && !participant.exclusions.contains(n)
+                        && participant.exchange_pools.iter().any(|pool| {
+                            p.exchange_pools.contains(pool)
+                        })
+                })
+                .map(|(n, _)| n.clone())
+                .collect::<Vec<String>>();
+            possible_receivers.shuffle(&mut rand::thread_rng());
+            self.edges.insert(name.clone(), possible_receivers);
+        }
+    }
+
+    pub fn build_exchange(&self) -> Vec<(String, String)> {
+        let mut exchange = vec![];
+        let num_participants = self.participants.len();
+        let first = self.participants.iter().next().unwrap().0.clone();
+        let mut current = vec![first.clone()];
+        let mut visited = vec![first.clone()];
+
+        while current.len() < num_participants {
+            let receivers = self.edges.get(current.last().unwrap()).unwrap();
+            let receiver = receivers.iter().find(|r| !visited.contains(r));
+            if let Some(receiver) = receiver {
+                current.push(receiver.clone());
+                visited.push(receiver.clone());
+            } else {
+                let c = current.pop().unwrap();
+                visited.retain(|v| *v != c);
+            }
+
+            if current.is_empty() {
+                eprintln!("No way to construct ordering for current restrictions");
+                break;
+            }
+        }
+
+        current.as_slice().windows(2).for_each(|pair| {
+            exchange.push((pair[0].clone(), pair[1].clone()));
+        });
+
+        exchange
+    }
+}
+
 impl Participant {
     fn new(name: String, exchange_pools: Vec<ExchangePool>, exclusions: Vec<&str>) -> Participant {
         let exclusions = exclusions.iter().map(|s| s.to_string()).collect();
@@ -37,13 +116,6 @@ impl Participant {
             exclusions,
         }
     }
-}
-
-fn contains_exclusions(participants: &Vec<&Participant>) -> bool {
-    participants.iter().enumerate().any(|(i, p)| {
-        let receiver = &participants[(i + 1) % participants.len()].name;
-        p.exclusions.contains(&receiver)
-    })
 }
 
 fn main() {
@@ -154,20 +226,15 @@ fn main() {
         _ => panic!("Invalid pool specified"),
     };
 
-    let mut rng = rand::thread_rng();
-    let mut filtered_participants = participants
+    let filtered_participants = participants
         .iter()
         .filter(|p| p.exchange_pools.contains(&pool))
-        .collect::<Vec<&Participant>>();
+        .cloned()
+        .collect::<Vec<Participant>>();
 
-    // this is really dirty
-    filtered_participants.shuffle(&mut rng);
-    while pool != ExchangePool::IslandLife && contains_exclusions(&filtered_participants) {
-        filtered_participants.shuffle(&mut rng);
-    }
-    filtered_participants.iter().enumerate().for_each(|(i, p)| {
-        let receiver = &filtered_participants[(i + 1) % filtered_participants.len()].name;
-        let sender = &p.name;
+    let graph = ParticipantGraph::from_participants(filtered_participants);
+    let exchange = graph.build_exchange();
+    exchange.iter().for_each(|(sender, receiver)| {
         println!("{} -> {}", sender, receiver);
     });
     let year = Local::now().year();
