@@ -1,7 +1,10 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
+use anyhow::Result;
 
 use chrono::{Datelike, Local};
 use rand::seq::SliceRandom;
+
+mod persist;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 enum ExchangePool {
@@ -9,6 +12,17 @@ enum ExchangePool {
     Grabergishimazureson,
     Pets,
 }
+
+impl Display for ExchangePool {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExchangePool::IslandLife => write!(f, "Island Life"),
+            ExchangePool::Grabergishimazureson => write!(f, "Grabergishimazureson"),
+            ExchangePool::Pets => write!(f, "Pets"),
+        }
+    }
+}
+
 
 fn letter_for_pool(pool: ExchangePool) -> char {
     let mut rng = rand::thread_rng();
@@ -118,7 +132,7 @@ impl Participant {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let participants = vec![
         Participant::new(
             "Claire".to_string(),
@@ -239,4 +253,28 @@ fn main() {
     });
     let year = Local::now().year();
     println!("Letter for {}: {}", year, letter_for_pool(pool));
+    let mut conn = persist::init_db("./drawings.db".into())?;
+    let exchange_ids = persist::add_exchange(&mut conn, &[ExchangePool::Grabergishimazureson, ExchangePool::IslandLife, ExchangePool::Pets])?;
+
+    let current_exchange_id = match pool {
+        ExchangePool::Grabergishimazureson => exchange_ids[0],
+        ExchangePool::IslandLife => exchange_ids[1],
+        ExchangePool::Pets => exchange_ids[2],
+    };
+
+    let mut participant_name_to_id = HashMap::new();
+
+    for p in participants {
+        let id = persist::add_participant(&mut conn, &p)?;
+        participant_name_to_id.insert(p.name.clone(), id);
+    }
+
+    persist::reset_pairs_for_exchange(&mut conn, current_exchange_id)?;
+
+    for (sender, receiver) in exchange {
+        let sender_id = participant_name_to_id.get(&sender).expect("Sender not found");
+        let receiver_id = participant_name_to_id.get(&receiver).expect("Receiver not found");
+        persist::add_exchange_pair(&mut conn, *sender_id, *receiver_id, current_exchange_id)?;
+    }
+    Ok(())
 }
