@@ -116,6 +116,9 @@ impl ParticipantGraph {
         current.as_slice().windows(2).for_each(|pair| {
             exchange.push((pair[0].clone(), pair[1].clone()));
         });
+        let first = exchange.first().unwrap().0.clone();
+        let last = exchange.last().unwrap().1.clone();
+        exchange.push((last, first));
 
         exchange
     }
