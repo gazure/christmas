@@ -2,21 +2,19 @@ use anyhow::Result;
 use std::collections::HashMap;
 
 use chrono::{Datelike, Local};
-use rand::seq::SliceRandom;
 
 mod giftexchange;
-mod persist;
+// mod persist;
+mod ui;
 
 use giftexchange::ExchangePool;
 
 fn letter_for_pool(pool: ExchangePool) -> char {
-    let mut rng = rand::thread_rng();
-    let mut letters = "ACDIJLMNORSTUXYZ".chars().collect::<Vec<char>>();
-    letters.shuffle(&mut rng);
+    let letters = "ACDIJLMNORSTUXYZ".chars().collect::<Vec<char>>();
 
     match pool {
         ExchangePool::IslandLife => 'I',
-        ExchangePool::Grabergishimazureson => letters[0],
+        ExchangePool::Grabergishimazureson => fastrand::choice(letters.iter()).unwrap().clone(),
         ExchangePool::Pets => 'P',
     }
 }
@@ -71,7 +69,7 @@ impl ParticipantGraph {
                 })
                 .map(|(n, _)| n.clone())
                 .collect::<Vec<String>>();
-            possible_receivers.shuffle(&mut rand::thread_rng());
+            fastrand::shuffle(&mut possible_receivers);
             self.edges.insert(name.clone(), possible_receivers);
         }
     }
@@ -112,7 +110,7 @@ impl ParticipantGraph {
 }
 
 impl Participant {
-    fn new(name: String, exchange_pools: Vec<ExchangePool>, exclusions: Vec<&str>) -> Participant {
+    pub fn new(name: String, exchange_pools: Vec<ExchangePool>, exclusions: Vec<&str>) -> Participant {
         let exclusions = exclusions.iter().map(|s| s.to_string()).collect();
         Participant {
             name,
@@ -122,106 +120,107 @@ impl Participant {
     }
 }
 
-fn main() -> Result<()> {
+fn build_exchange() -> Result<()> {
     let participants = vec![
         Participant::new(
             "Claire".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Duncan", "Meaghann"],
+            vec!["Duncan", "Chris"],
         ),
         Participant::new(
             "Grant".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Chris"],
+            vec!["Noel"],
         ),
         Participant::new(
             "Anne".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Eric", "K-Lee"],
+            vec!["Eric", "Kari"],
         ),
         Participant::new(
             "Duncan".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Claire", "Steve"],
+            vec!["Claire", "Chris"],
         ),
         Participant::new(
             "Noel".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["K-Lee", "Linda"],
+            vec!["K-Lee", "Claire"],
         ),
         Participant::new(
             "K-Lee".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Noel", "Kari"],
+            vec!["Noel", "Jim"],
         ),
         Participant::new(
             "Steve".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Linda", "Alec"],
+            vec!["Linda", "Duncan"],
         ),
         Participant::new(
             "Linda".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Steve", "Anne"],
+            vec!["Steve", "Alec"],
         ),
         Participant::new(
             "Chris".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Jim"],
+            vec!["Eric"],
         ),
         Participant::new(
             "Jim".to_string(),
             vec![ExchangePool::Grabergishimazureson],
-            vec!["Kari", "Duncan"],
+            vec!["Kari", "Anne"],
         ),
         Participant::new(
             "Kari".to_string(),
             vec![ExchangePool::Grabergishimazureson],
-            vec!["Jim", "Grant"],
+            vec!["Jim", "Linda"],
         ),
         Participant::new(
             "Meaghann".to_string(),
             vec![ExchangePool::Grabergishimazureson],
-            vec!["Noel"],
+            vec!["Steve"],
         ),
         Participant::new(
             "Alec".to_string(),
             vec![ExchangePool::Grabergishimazureson],
-            vec!["Claire"],
+            vec!["Meaghann"],
         ),
         Participant::new(
             "Eric".to_string(),
             vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Anne"],
+            vec!["Anne", "K-Lee"],
         ),
-        Participant::new("Stella".to_string(), vec![ExchangePool::Pets], vec!["Lily"]),
+        Participant::new("Stella".to_string(), vec![ExchangePool::Pets], vec!["Daisy"]),
         Participant::new(
             "Bailey".to_string(),
             vec![ExchangePool::Pets],
-            vec!["Kitty"],
+            vec!["Luca"],
         ),
-        Participant::new("Kitty".to_string(), vec![ExchangePool::Pets], vec!["Daisy"]),
+        Participant::new("Kitty".to_string(), vec![ExchangePool::Pets], vec!["Bailey"]),
         Participant::new(
             "Charlie".to_string(),
             vec![ExchangePool::Pets],
-            vec!["Stella"],
+            vec!["Kona"],
         ),
         Participant::new(
             "Astra".to_string(),
             vec![ExchangePool::Pets],
-            vec!["Bailey"],
+            vec!["Lily"],
         ),
-        Participant::new("Freya".to_string(), vec![ExchangePool::Pets], vec!["Astra"]),
-        Participant::new("Lily".to_string(), vec![ExchangePool::Pets], vec!["Freya"]),
+        Participant::new("Freya".to_string(), vec![ExchangePool::Pets], vec!["Stella"]),
+        Participant::new("Lily".to_string(), vec![ExchangePool::Pets], vec!["Kitty"]),
         Participant::new(
             "Daisy".to_string(),
             vec![ExchangePool::Pets],
-            vec!["Charlie"],
+            vec!["Astra"],
         ),
-        Participant::new("Luca".to_string(), vec![ExchangePool::Pets], vec![]),
-        Participant::new("Kona".to_string(), vec![ExchangePool::Pets], vec![]),
+        Participant::new("Luca".to_string(), vec![ExchangePool::Pets], vec!["Charlie"]),
+        Participant::new("Kona".to_string(), vec![ExchangePool::Pets], vec!["Freya"]),
     ];
     // get cli args
+
     let pool_arg = std::env::args().nth(1).expect("No pool specified");
     let pool = match pool_arg.as_str() {
         "island" => ExchangePool::IslandLife,
@@ -243,39 +242,52 @@ fn main() -> Result<()> {
     });
     let year = Local::now().year();
     println!("Letter for {}: {}", year, letter_for_pool(pool));
-    let mut conn = persist::init_db("./drawings.db".into())?;
-    let exchange_ids = persist::add_exchange(
-        &mut conn,
-        &[
-            ExchangePool::Grabergishimazureson,
-            ExchangePool::IslandLife,
-            ExchangePool::Pets,
-        ],
-    )?;
+    // let mut conn = persist::init_db("./drawings.db".into())?;
+    // let exchange_ids = persist::add_exchange(
+    //     &mut conn,
+    //     &[
+    //         ExchangePool::Grabergishimazureson,
+    //         ExchangePool::IslandLife,
+    //         ExchangePool::Pets,
+    //     ],
+    // )?;
 
-    let current_exchange_id = match pool {
-        ExchangePool::Grabergishimazureson => exchange_ids[0],
-        ExchangePool::IslandLife => exchange_ids[1],
-        ExchangePool::Pets => exchange_ids[2],
-    };
+    // let current_exchange_id = match pool {
+    //     ExchangePool::Grabergishimazureson => exchange_ids[0],
+    //     ExchangePool::IslandLife => exchange_ids[1],
+    //     ExchangePool::Pets => exchange_ids[2],
+    // };
 
-    let mut participant_name_to_id = HashMap::new();
+    // let mut participant_name_to_id = HashMap::new();
 
-    for p in participants {
-        let id = persist::add_participant(&mut conn, &p)?;
-        participant_name_to_id.insert(p.name.clone(), id);
-    }
+    // for p in participants {
+    //     let id = persist::add_participant(&mut conn, &p)?;
+    //     participant_name_to_id.insert(p.name.clone(), id);
+    // }
 
-    persist::reset_pairs_for_exchange(&mut conn, current_exchange_id)?;
+    // persist::reset_pairs_for_exchange(&mut conn, current_exchange_id)?;
 
-    for (sender, receiver) in exchange {
-        let sender_id = participant_name_to_id
-            .get(&sender)
-            .expect("Sender not found");
-        let receiver_id = participant_name_to_id
-            .get(&receiver)
-            .expect("Receiver not found");
-        persist::add_exchange_pair(&mut conn, *sender_id, *receiver_id, current_exchange_id)?;
+    // for (sender, receiver) in exchange {
+    //     let sender_id = participant_name_to_id
+    //         .get(&sender)
+    //         .expect("Sender not found");
+    //     let receiver_id = participant_name_to_id
+    //         .get(&receiver)
+    //         .expect("Receiver not found");
+    //     persist::add_exchange_pair(&mut conn, *sender_id, *receiver_id, current_exchange_id)?;
+    // }
+    Ok(())
+}
+
+
+fn main() -> Result<()> {
+    // Check if CLI args are provided
+    if std::env::args().len() > 1 {
+        // Run CLI version
+        build_exchange()?;
+    } else {
+        // Run Dioxus web app
+        dioxus::launch(ui::app);
     }
     Ok(())
 }

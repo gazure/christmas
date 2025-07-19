@@ -7,7 +7,24 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.86"
-rand = "0.8.4"
 chrono = "0.4.38"
-rusqlite = { version = "0.31.0", features = ["bundled"] }
-rusqlite_migration = "1.2.0"
+fastrand = "2.3.0"
+# rusqlite = { version = "0.31.0", features = ["bundled"] }
+# rusqlite_migration = "1.2.0"
+dioxus = { version = "0.6.3", features = ["web"] }
+
+
+[target.wasm32-unknown-unknown]
+rustflags = "--cfg getrandom_backend=\"wasm_js\""
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
