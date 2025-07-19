@@ -11,7 +11,7 @@ chrono = "0.4.38"
 fastrand = "2.3.0"
 # rusqlite = { version = "0.31.0", features = ["bundled"] }
 # rusqlite_migration = "1.2.0"
-dioxus = { version = "0.6.3", features = ["web"] }
+dioxus = { version = "0.6.3", features = ["web", "fullstack"] }
 
 [profile]
 

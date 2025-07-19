@@ -1,6 +1,10 @@
 use dioxus::prelude::*;
-use crate::{giftexchange::ExchangePool, ParticipantGraph, Participant, letter_for_pool};
-use chrono::{Datelike, Local};
+use crate::{
+    data,
+    exchange::ParticipantGraph,
+    giftexchange::ExchangePool,
+    utils::{current_year, letter_for_pool},
+};
 
 #[derive(Clone, Debug)]
 pub struct ExchangePairing {
@@ -17,15 +21,8 @@ pub struct ExchangeResult {
 }
 
 pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
-    let participants = get_all_participants();
-    
-    let filtered_participants = participants
-        .iter()
-        .filter(|p| p.exchange_pools.contains(&pool))
-        .cloned()
-        .collect::<Vec<Participant>>();
-
-    let graph = ParticipantGraph::from_participants(filtered_participants);
+    let participants = data::get_participants_by_pool(pool);
+    let graph = ParticipantGraph::from_participants(participants);
     let exchange = graph.build_exchange();
     
     let pairings = exchange
@@ -33,7 +30,7 @@ pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
         .map(|(giver, receiver)| ExchangePairing { giver, receiver })
         .collect();
     
-    let year = Local::now().year();
+    let year = current_year();
     let year_letter = letter_for_pool(pool);
     
     ExchangeResult {
@@ -42,107 +39,6 @@ pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
         year_letter,
         year,
     }
-}
-
-fn get_all_participants() -> Vec<Participant> {
-    vec![
-        Participant::new(
-            "Claire".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Duncan", "Chris"],
-        ),
-        Participant::new(
-            "Grant".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Noel"],
-        ),
-        Participant::new(
-            "Anne".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Eric", "Kari"],
-        ),
-        Participant::new(
-            "Duncan".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Claire", "Chris"],
-        ),
-        Participant::new(
-            "Noel".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["K-Lee", "Claire"],
-        ),
-        Participant::new(
-            "K-Lee".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Noel", "Jim"],
-        ),
-        Participant::new(
-            "Steve".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Linda", "Duncan"],
-        ),
-        Participant::new(
-            "Linda".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Steve", "Alec"],
-        ),
-        Participant::new(
-            "Chris".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Eric"],
-        ),
-        Participant::new(
-            "Jim".to_string(),
-            vec![ExchangePool::Grabergishimazureson],
-            vec!["Kari", "Anne"],
-        ),
-        Participant::new(
-            "Kari".to_string(),
-            vec![ExchangePool::Grabergishimazureson],
-            vec!["Jim", "Linda"],
-        ),
-        Participant::new(
-            "Meaghann".to_string(),
-            vec![ExchangePool::Grabergishimazureson],
-            vec!["Steve"],
-        ),
-        Participant::new(
-            "Alec".to_string(),
-            vec![ExchangePool::Grabergishimazureson],
-            vec!["Meaghann"],
-        ),
-        Participant::new(
-            "Eric".to_string(),
-            vec![ExchangePool::IslandLife, ExchangePool::Grabergishimazureson],
-            vec!["Anne", "K-Lee"],
-        ),
-        Participant::new("Stella".to_string(), vec![ExchangePool::Pets], vec!["Daisy"]),
-        Participant::new(
-            "Bailey".to_string(),
-            vec![ExchangePool::Pets],
-            vec!["Luca"],
-        ),
-        Participant::new("Kitty".to_string(), vec![ExchangePool::Pets], vec!["Bailey"]),
-        Participant::new(
-            "Charlie".to_string(),
-            vec![ExchangePool::Pets],
-            vec!["Kona"],
-        ),
-        Participant::new(
-            "Astra".to_string(),
-            vec![ExchangePool::Pets],
-            vec!["Lily"],
-        ),
-        Participant::new("Freya".to_string(), vec![ExchangePool::Pets], vec!["Stella"]),
-        Participant::new("Lily".to_string(), vec![ExchangePool::Pets], vec!["Kitty"]),
-        Participant::new(
-            "Daisy".to_string(),
-            vec![ExchangePool::Pets],
-            vec!["Astra"],
-        ),
-        Participant::new("Luca".to_string(), vec![ExchangePool::Pets], vec!["Charlie"]),
-        Participant::new("Kona".to_string(), vec![ExchangePool::Pets], vec!["Freya"]),
-    ]
 }
 
 pub fn app() -> Element {
