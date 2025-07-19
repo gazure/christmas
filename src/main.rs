@@ -1,28 +1,13 @@
-use std::{collections::HashMap, fmt::Display};
 use anyhow::Result;
+use std::collections::HashMap;
 
 use chrono::{Datelike, Local};
 use rand::seq::SliceRandom;
 
+mod giftexchange;
 mod persist;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
-enum ExchangePool {
-    IslandLife,
-    Grabergishimazureson,
-    Pets,
-}
-
-impl Display for ExchangePool {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ExchangePool::IslandLife => write!(f, "Island Life"),
-            ExchangePool::Grabergishimazureson => write!(f, "Grabergishimazureson"),
-            ExchangePool::Pets => write!(f, "Pets"),
-        }
-    }
-}
-
+use giftexchange::ExchangePool;
 
 fn letter_for_pool(pool: ExchangePool) -> char {
     let mut rng = rand::thread_rng();
@@ -45,8 +30,8 @@ struct Participant {
 
 #[derive(Debug, Default)]
 struct ParticipantGraph {
-    participants: HashMap<String, Participant>,
     edges: HashMap<String, Vec<String>>,
+    participants: HashMap<String, Participant>,
 }
 
 impl ParticipantGraph {
@@ -67,7 +52,8 @@ impl ParticipantGraph {
     }
 
     pub fn add_participant(&mut self, participant: Participant) {
-        self.participants.insert(participant.name.clone(), participant);
+        self.participants
+            .insert(participant.name.clone(), participant);
     }
 
     pub fn link_participants(&mut self) {
@@ -78,9 +64,10 @@ impl ParticipantGraph {
                 .filter(|(n, p)| {
                     *n != name
                         && !participant.exclusions.contains(n)
-                        && participant.exchange_pools.iter().any(|pool| {
-                            p.exchange_pools.contains(pool)
-                        })
+                        && participant
+                            .exchange_pools
+                            .iter()
+                            .any(|pool| p.exchange_pools.contains(pool))
                 })
                 .map(|(n, _)| n.clone())
                 .collect::<Vec<String>>();
@@ -257,7 +244,14 @@ fn main() -> Result<()> {
     let year = Local::now().year();
     println!("Letter for {}: {}", year, letter_for_pool(pool));
     let mut conn = persist::init_db("./drawings.db".into())?;
-    let exchange_ids = persist::add_exchange(&mut conn, &[ExchangePool::Grabergishimazureson, ExchangePool::IslandLife, ExchangePool::Pets])?;
+    let exchange_ids = persist::add_exchange(
+        &mut conn,
+        &[
+            ExchangePool::Grabergishimazureson,
+            ExchangePool::IslandLife,
+            ExchangePool::Pets,
+        ],
+    )?;
 
     let current_exchange_id = match pool {
         ExchangePool::Grabergishimazureson => exchange_ids[0],
@@ -275,8 +269,12 @@ fn main() -> Result<()> {
     persist::reset_pairs_for_exchange(&mut conn, current_exchange_id)?;
 
     for (sender, receiver) in exchange {
-        let sender_id = participant_name_to_id.get(&sender).expect("Sender not found");
-        let receiver_id = participant_name_to_id.get(&receiver).expect("Receiver not found");
+        let sender_id = participant_name_to_id
+            .get(&sender)
+            .expect("Sender not found");
+        let receiver_id = participant_name_to_id
+            .get(&receiver)
+            .expect("Receiver not found");
         persist::add_exchange_pair(&mut conn, *sender_id, *receiver_id, current_exchange_id)?;
     }
     Ok(())
