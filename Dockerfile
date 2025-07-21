@@ -25,6 +25,9 @@ RUN dx bundle --platform web
 # We do not need the Rust toolchain to run the binary!
 FROM debian:bookworm-slim AS runtime
 
+# Install tini for proper signal handling
+RUN apt-get update && apt-get install -y tini && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/target/dx/christmas/release/web/ /usr/local/app
 
 # set our port and make sure to listen for all connections
@@ -35,4 +38,5 @@ ENV IP=0.0.0.0
 EXPOSE 8080
 
 WORKDIR /usr/local/app
-ENTRYPOINT [ "/usr/local/app/server" ]
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD [ "/usr/local/app/server" ]
