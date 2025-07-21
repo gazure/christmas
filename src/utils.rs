@@ -11,7 +11,7 @@ pub fn letter_for_pool(pool: ExchangePool) -> char {
 
     match pool {
         ExchangePool::IslandLife => 'I',
-        ExchangePool::Grabergishimazureson => fastrand::choice(letters.iter()).unwrap().clone(),
+        ExchangePool::Grabergishimazureson => *fastrand::choice(letters.iter()).unwrap(),
         ExchangePool::Pets => 'P',
     }
 }
@@ -27,6 +27,6 @@ pub fn parse_pool_arg(arg: &str) -> Result<ExchangePool, String> {
         "island" => Ok(ExchangePool::IslandLife),
         "graber" => Ok(ExchangePool::Grabergishimazureson),
         "pets" => Ok(ExchangePool::Pets),
-        _ => Err(format!("Invalid pool specified: '{}'. Valid options are: island, graber, pets", arg)),
+        _ => Err(format!("Invalid pool specified: '{arg}'. Valid options are: island, graber, pets")),
     }
 }

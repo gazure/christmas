@@ -15,7 +15,6 @@ pub struct ExchangePairing {
 
 #[derive(Clone, Debug)]
 pub struct ExchangeResult {
-    pub pool: ExchangePool,
     pub pairings: Vec<ExchangePairing>,
     pub year_letter: char,
     pub year: i32,
@@ -35,7 +34,6 @@ pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
     let year_letter = letter_for_pool(pool);
 
     ExchangeResult {
-        pool,
         pairings,
         year_letter,
         year,

@@ -25,16 +25,16 @@ fn build_exchange() -> Result<()> {
     let exchange = graph.build_exchange();
     
     // Print the exchange pairs
-    println!("\nGift Exchange for {}:", pool);
+    println!("\nGift Exchange for {pool}:");
     println!("==========================");
     exchange.iter().for_each(|(sender, receiver)| {
-        println!("{} -> {}", sender, receiver);
+        println!("{sender} -> {receiver}");
     });
     
     // Print the letter for this year
     let year = utils::current_year();
     let letter = utils::letter_for_pool(pool);
-    println!("\nLetter for {} {}: {}", pool, year, letter);
+    println!("\nLetter for {pool} {year}: {letter}");
     
     Ok(())
 }
