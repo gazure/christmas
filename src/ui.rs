@@ -1,10 +1,11 @@
-use dioxus::prelude::*;
 use crate::{
     data,
     exchange::ParticipantGraph,
     giftexchange::ExchangePool,
     utils::{current_year, letter_for_pool},
 };
+use dioxus::prelude::*;
+use dioxus::document::Title;
 
 #[derive(Clone, Debug)]
 pub struct ExchangePairing {
@@ -24,15 +25,15 @@ pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
     let participants = data::get_participants_by_pool(pool);
     let graph = ParticipantGraph::from_participants(participants);
     let exchange = graph.build_exchange();
-    
+
     let pairings = exchange
         .into_iter()
         .map(|(giver, receiver)| ExchangePairing { giver, receiver })
         .collect();
-    
+
     let year = current_year();
     let year_letter = letter_for_pool(pool);
-    
+
     ExchangeResult {
         pool,
         pairings,
@@ -44,36 +45,37 @@ pub fn generate_exchange_pairings(pool: ExchangePool) -> ExchangeResult {
 pub fn app() -> Element {
     let mut selected_pool = use_signal(|| ExchangePool::IslandLife);
     let mut exchange_result = use_signal(|| generate_exchange_pairings(selected_pool()));
-    
+
     let regenerate = move |_| {
         exchange_result.set(generate_exchange_pairings(selected_pool()));
     };
 
     rsx! {
-        div { 
+        Title {"Christmas Gift Exchange"}
+        div {
             style: "min-height: 100vh; background: linear-gradient(to bottom right, #fee2e2, #dcfce7); padding: 2rem;",
-            div { 
+            div {
                 style: "max-width: 56rem; margin: 0 auto;",
                 // Header
-                h1 { 
+                h1 {
                     style: "font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 2rem; color: #166534;",
                     "🎄 Christmas Gift Exchange 🎁"
                 }
-                
+
                 // Pool selector
-                div { 
+                div {
                     style: "background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-bottom: 1.5rem;",
-                    h2 { 
+                    h2 {
                         style: "font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;",
                         "Select Exchange Pool"
                     }
-                    div { 
+                    div {
                         style: "display: flex; gap: 1rem; flex-wrap: wrap;",
                         button {
-                            style: if selected_pool() == ExchangePool::IslandLife { 
-                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
-                            } else { 
-                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
+                            style: if selected_pool() == ExchangePool::IslandLife {
+                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
+                            } else {
+                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
                             },
                             onclick: move |_| {
                                 selected_pool.set(ExchangePool::IslandLife);
@@ -82,10 +84,10 @@ pub fn app() -> Element {
                             "Island Life"
                         }
                         button {
-                            style: if selected_pool() == ExchangePool::Grabergishimazureson { 
-                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
-                            } else { 
-                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
+                            style: if selected_pool() == ExchangePool::Grabergishimazureson {
+                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
+                            } else {
+                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
                             },
                             onclick: move |_| {
                                 selected_pool.set(ExchangePool::Grabergishimazureson);
@@ -94,10 +96,10 @@ pub fn app() -> Element {
                             "Grabergishimazureson"
                         }
                         button {
-                            style: if selected_pool() == ExchangePool::Pets { 
-                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
-                            } else { 
-                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;" 
+                            style: if selected_pool() == ExchangePool::Pets {
+                                "padding: 0.75rem 1.5rem; background: #16a34a; color: white; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
+                            } else {
+                                "padding: 0.75rem 1.5rem; background: #e5e7eb; color: #374151; border-radius: 0.375rem; font-weight: 500; border: none; cursor: pointer;"
                             },
                             onclick: move |_| {
                                 selected_pool.set(ExchangePool::Pets);
@@ -112,44 +114,44 @@ pub fn app() -> Element {
                         "🔄 Regenerate Pairings"
                     }
                 }
-                
+
                 // Year and Letter Display
-                div { 
+                div {
                     style: "background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-bottom: 1.5rem;",
-                    div { 
+                    div {
                         style: "text-align: center;",
-                        h3 { 
+                        h3 {
                             style: "font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem;",
-                            "Exchange Code for {exchange_result().year}"
+                            "Letter for {exchange_result().year}"
                         }
-                        div { 
+                        div {
                             style: "font-size: 4rem; font-weight: bold; color: #16a34a;",
                             "{exchange_result().year_letter}"
                         }
                     }
                 }
-                
+
                 // Pairings Display
-                div { 
+                div {
                     style: "background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 1.5rem;",
-                    h2 { 
+                    h2 {
                         style: "font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; color: #1f2937;",
                         "Gift Exchange Pairings"
                     }
-                    div { 
+                    div {
                         style: "display: flex; flex-direction: column; gap: 0.75rem;",
                         for pairing in &exchange_result().pairings {
-                            div { 
+                            div {
                                 style: "display: flex; align-items: center; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;",
-                                div { 
+                                div {
                                     style: "flex: 1; font-size: 1.125rem; font-weight: 500; color: #374151;",
                                     "{pairing.giver}"
                                 }
-                                div { 
+                                div {
                                     style: "font-size: 1.5rem; color: #16a34a; margin: 0 1rem;",
                                     "→"
                                 }
-                                div { 
+                                div {
                                     style: "flex: 1; font-size: 1.125rem; font-weight: 500; color: #374151; text-align: right;",
                                     "{pairing.receiver}"
                                 }
